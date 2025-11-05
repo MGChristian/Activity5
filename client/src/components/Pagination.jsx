@@ -1,9 +1,8 @@
-import React from "react";
-
 function Pagination({ currentPage, totalPages, onPageChange }) {
-  // Generate visible pages (you can make this smarter later)
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
+  console.log("current", currentPage);
+  console.log("totalPages", totalPages);
   return (
     <div className="mx-auto max-w-[1200px] px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-700">
       {/* Newer Posts Button */}
@@ -35,7 +34,7 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
       {/* Older Posts Button */}
       <button
         onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
+        disabled={currentPage >= totalPages}
         className="flex items-center gap-1 rounded-full border border-gray-300 bg-white px-4 py-2 hover:bg-gray-100 transition-all duration-200 disabled:opacity-40"
       >
         Older Posts →

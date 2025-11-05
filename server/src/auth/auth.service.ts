@@ -15,7 +15,7 @@ export class AuthService {
 
   async login(loginUsersDto: LoginUsersDto) {
     try {
-      const { id, username, email } =
+      const { id, username, email, about, picture } =
         await this.userService.validateUser(loginUsersDto);
       const payload = {
         id,
@@ -24,7 +24,7 @@ export class AuthService {
       };
       return {
         accessToken: this.jwtService.sign(payload),
-        user: { id, username, email },
+        user: { id, username, email, about, picture },
       };
     } catch (error) {
       throw error;
@@ -33,7 +33,7 @@ export class AuthService {
 
   async signup(registerUserDto: RegisterUserDto) {
     try {
-      const { id, username, email } =
+      const { id, username, email, about, picture } =
         await this.userService.signup(registerUserDto);
       const payload = {
         id: id,
@@ -46,6 +46,8 @@ export class AuthService {
           id,
           username,
           email,
+          about,
+          picture,
         },
       };
     } catch (error) {

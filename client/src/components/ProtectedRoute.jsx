@@ -8,8 +8,6 @@ const ProtectedRoute = () => {
     return <p>Loading...</p>; // or a spinner
   }
 
-  return <Outlet />;
-
   return currentUser ? <Outlet /> : <Navigate to="/" replace />;
 };
 

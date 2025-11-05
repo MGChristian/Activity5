@@ -1,89 +1,74 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Hero from "../components/Hero";
 import MainContainer from "../components/MainContainer";
 import BlogCard from "../components/BlogCards";
 import Pagination from "../components/Pagination";
+import BlogService from "../services/blogService";
 
 function Main() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
+  const [blogs, setBlogs] = useState([]);
+  const [totalBlogs, setTotalBlogs] = useState(0); // to calculate total pages
+  const blogsPerPage = 9;
+
+  const blogApi = new BlogService();
 
   const categories = [
     "All",
-    "Commercial",
-    "Design",
-    "Nature",
-    "People",
-    "Photography",
-    "Tech",
-    "Travel",
-    "Uncategorized",
+    "commercial",
+    "design",
+    "nature",
+    "people",
+    "photography",
+    "tech",
+    "travel",
+    "uncategorized",
   ];
 
-  const blogs = [
-    {
-      image: "/image.png",
-      title: "The Art of Writing Simply",
-      author: "Jane Doe",
-      date: "Nov 5, 2025",
-      description:
-        "Writing doesn’t have to be complicated. Learn how simplicity can make your message clearer and more powerful.",
-      category: "Design",
-    },
-    {
-      image: "/image.png",
-      title: "The Art of Writing Simply",
-      author: "Jane Doe",
-      date: "Nov 5, 2025",
-      description:
-        "Writing doesn’t have to be complicated. Learn how simplicity can make your message clearer and more powerful.",
-      category: "Design",
-    },
-    {
-      image: "/image.png",
-      title: "Design That Speaks",
-      author: "John Smith",
-      date: "Oct 30, 2025",
-      description:
-        "Explore how great design communicates without words — and why minimalism is more than an aesthetic choice.",
-      category: "Commercial",
-    },
-    {
-      image: "/image.png",
-      title: "Why Code Quality Matters",
-      author: "Ava Lopez",
-      date: "Oct 25, 2025",
-      description:
-        "Clean code isn’t just for readability — it’s the foundation of scalable, maintainable, and secure software.",
-      category: "Tech",
-    },
-  ];
+  // Fetch blogs whenever activeCategory or currentPage changes
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const limit = blogsPerPage;
+        const offset = (currentPage - 1) * blogsPerPage;
 
-  const blogsPerPage = 3;
+        const response = await blogApi.fetchBlogs({
+          limit,
+          offset,
+          category: activeCategory === "All" ? undefined : activeCategory,
+        });
 
-  const totalPages = Math.ceil(blogs.length / blogsPerPage);
+        // Assuming your backend returns { data: [...blogs], total: number }
+        setBlogs(response.data);
+        setTotalBlogs(response.meta.totalItems);
+      } catch (error) {
+        console.error("Failed to fetch blogs:", error);
+      }
+    };
 
-  // Slice blogs for current page
-  const startIndex = (currentPage - 1) * blogsPerPage;
-  const paginatedBlogs = blogs.slice(startIndex, startIndex + blogsPerPage);
+    fetchBlogs();
+  }, [activeCategory, currentPage]);
 
-  // Filter blogs by selected category
-  const filteredBlogs =
-    activeCategory === "All"
-      ? blogs
-      : blogs.filter((blog) => blog.category === activeCategory);
+  console.log(totalBlogs);
+  console.log(blogsPerPage);
+
+  const totalPages = Math.ceil(totalBlogs / blogsPerPage);
 
   return (
     <div>
       <Hero />
       <MainContainer>
         {/* Categories Section */}
-        <div className="mx-auto max-w-[1200px] px-6 py-8 border-b border-b-gray-300">
+        <div className="w-full px-6 py-8 border-b border-b-gray-300">
           <div className="flex flex-wrap items-center justify-center gap-3">
             {categories.map((cat) => (
               <button
                 key={cat}
-                onClick={() => setActiveCategory(cat)}
+                onClick={() => {
+                  setActiveCategory(cat);
+                  setCurrentPage(1); // Reset to first page on category change
+                }}
                 className={`px-4 py-2 text-sm rounded-full border transition-all duration-200 ${
                   activeCategory === cat
                     ? "bg-gray-900 text-white border-gray-900"
@@ -97,9 +82,9 @@ function Main() {
         </div>
 
         {/* Blog Grid */}
-        <div className="mx-auto max-w-[1200px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-          {filteredBlogs.map((blog, index) => (
-            <BlogCard key={index} {...blog} id={index} />
+        <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+          {blogs.map((blog, index) => (
+            <BlogCard key={blog.id || index} {...blog} />
           ))}
         </div>
 

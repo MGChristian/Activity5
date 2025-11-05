@@ -1,6 +1,15 @@
 import { Link } from "react-router-dom";
 
-function BlogCard({ picture, title, username, date, subtitle, id }) {
+function BlogCard({ picture, title, user, createdAt, subtitle, id }) {
+  const date = new Date(createdAt);
+  const readable = date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
   return (
     <Link
       to={`/main/blog/${id}`}
@@ -9,9 +18,11 @@ function BlogCard({ picture, title, username, date, subtitle, id }) {
       {/* picture container */}
       <div className="h-48 w-full overflow-hidden">
         <img
-          src={picture || "/blog-placeholder.jpg"}
-          alt={title || "Blog thumbnail"}
-          className="h-full w-full object-cover object-center hover:scale-105 transition-transform duration-300"
+          src={
+            `http://localhost:3000/public/${picture}` || "/default-avatar.png"
+          }
+          alt="Profile"
+          className="h-full w-full object-cover"
         />
       </div>
 
@@ -24,9 +35,9 @@ function BlogCard({ picture, title, username, date, subtitle, id }) {
         <p className="text-sm text-gray-500 mb-3">
           by{" "}
           <span className="font-medium text-gray-700">
-            {username || "Unknown username"}
+            {user.username || "Unknown username"}
           </span>{" "}
-          · {date || "No Date"}
+          · {readable}
         </p>
 
         <p className="text-gray-600 leading-relaxed line-clamp-3">

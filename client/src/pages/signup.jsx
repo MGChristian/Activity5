@@ -17,30 +17,30 @@ function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // try {
-    // const response = await register(registerInfo);
-    // const data = await response.json(); // parse JSON body
+    try {
+      const response = await register(registerInfo);
+      const data = await response.json(); // parse JSON body
 
-    // if (response.ok) {
-    //   // 2xx status codes
-    setShowPopup(true);
-    //   } else if (response.status === 409) {
-    //     // Conflict errors
-    //     if (data.message === "Email already in use.") {
-    //       alert("This email is already registered. Please use another.");
-    //     } else if (data.message === "Username already in use.") {
-    //       alert(
-    //         "This username is already taken. Please choose a different one."
-    //       );
-    //     } else {
-    //       alert("Something went wrong. Please try again.");
-    //     }
-    //   } else {
-    //     alert("Something went wrong. Please try again.");
-    //   }
-    // } catch (error) {
-    //   console.error(error);
-    // }
+      if (response.ok) {
+        // 2xx status codes
+        setShowPopup(true);
+      } else if (response.status === 409) {
+        // Conflict errors
+        if (data.message === "Email already in use.") {
+          alert("This email is already registered. Please use another.");
+        } else if (data.message === "Username already in use.") {
+          alert(
+            "This username is already taken. Please choose a different one."
+          );
+        } else {
+          alert("Something went wrong. Please try again.");
+        }
+      } else {
+        alert("Something went wrong. Please try again.");
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleChange = (e) => {

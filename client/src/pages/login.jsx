@@ -21,14 +21,14 @@ const Login = () => {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    // const response = await login(loginInfo);
-    // if (response.status === 201) {
-    //   const data = await response.json();
-    //   const accessToken = data.accessToken;
-    //   const user = data.user;
-    //   handleLogin(accessToken, user);
-    navigate("/main");
-    // }
+    const response = await login(loginInfo);
+    if (response.status === 201) {
+      const data = await response.json();
+      const accessToken = data.accessToken;
+      const user = data.user;
+      handleLogin(accessToken, user);
+      navigate("/main");
+    }
   }
 
   return (

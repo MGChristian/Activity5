@@ -28,6 +28,13 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(user); // ✅ store as object
   };
 
+  const updateCurrentUser = (updatedUser) => {
+    // Update localStorage
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+    // Update state
+    setCurrentUser(updatedUser);
+  };
+
   // Logout function
   const logout = () => {
     localStorage.removeItem("accessToken");
@@ -35,7 +42,9 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(null);
   };
   return (
-    <AuthContext.Provider value={{ currentUser, logout, handleLogin, loading }}>
+    <AuthContext.Provider
+      value={{ currentUser, logout, handleLogin, loading, updateCurrentUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,65 +1,65 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import MainContainer from "../components/MainContainer";
 import BlogCard from "../components/BlogCards"; // make sure this import exists
+import { useAuth } from "../contexts/AuthProvider";
+import UserService from "../services/userService";
+import { Link } from "react-router-dom";
+import BlogService from "../services/blogService"; // import your BlogService
 
 function Profile() {
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      userId: 1,
-      title: "The Art of Writing Simply",
-      subtitle:
-        "Writing doesn’t have to be complicated. Learn how simplicity can make your message clearer and more powerful.",
-      //content
-      picture: "/image.png",
-      date: "Nov 5, 2025",
-      category: "Design",
+  const { currentUser, updateCurrentUser } = useAuth();
+  const userApi = new UserService();
+  const blogApi = new BlogService(); // for fetching posts
 
-      //from other tables
-      username: "us",
-    },
-    {
-      id: 2,
-      userId: 1,
-      picture: "/image.png",
-      title: "Design That Speaks",
-      username: "John Smith",
-      date: "Oct 30, 2025",
-      subtitle:
-        "Explore how great design communicates without words — and why minimalism is more than an aesthetic choice.",
-      category: "Commercial",
-    },
-    {
-      id: 3,
-      userId: 1,
-      picture: "/image.png",
-      title: "Why Code Quality Matters",
-      username: "Ava Lopez",
-      date: "Oct 25, 2025",
-      subtitle:
-        "Clean code isn’t just for readability — it’s the foundation of scalable, maintainable, and secure software.",
-      category: "Tech",
-    },
-  ]);
+  const [posts, setPosts] = useState([]);
+
+  useEffect(() => {
+    if (!currentUser) return; // wait until currentUser is available
+
+    const fetchUserPosts = async () => {
+      try {
+        const data = await blogApi.fetchBlogs({ authorId: currentUser.id });
+        setPosts(data.data);
+      } catch (error) {
+        console.error("Failed to fetch user posts:", error);
+      }
+    };
+
+    fetchUserPosts();
+  }, [currentUser]); // run when currentUser is set or changes
 
   const [formData, setFormData] = useState({
-    name: "",
-    username: "",
-    about: "",
+    name: currentUser.email || "",
+    username: currentUser.username || "",
+    about: currentUser.about || "",
+    picture: null, // store File object
   });
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const { name, value, files } = e.target;
+    if (name === "picture" && files.length > 0) {
+      setFormData((prev) => ({ ...prev, picture: files[0] }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Profile submitted:", formData);
-    // later: send this to backend via axios
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("username", formData.username);
+      formDataToSend.append("about", formData.about || "");
+      if (formData.picture) {
+        formDataToSend.append("picture", formData.picture);
+      }
+
+      const data = await userApi.updateUser(formDataToSend);
+      updateCurrentUser(data);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
   };
 
   return (
@@ -77,21 +77,38 @@ function Profile() {
           >
             {/* Profile Picture + Info */}
             <div className="flex flex-col sm:flex-row gap-6">
-              {/* Picture */}
+              {/* Profile Picture */}
               <div className="flex flex-col items-center sm:items-start gap-3 justify-center">
                 <div className="w-24 h-24 mx-auto rounded-full bg-gray-200 overflow-hidden">
                   <img
-                    src="/default-avatar.png"
+                    src={
+                      formData.picture
+                        ? URL.createObjectURL(formData.picture)
+                        : `http://localhost:3000/public/${currentUser.picture}` ||
+                          "/default-avatar.png"
+                    }
                     alt="Profile"
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <button
-                  type="button"
-                  className="text-sm text-gray-600 border border-gray-300 px-3 py-1 rounded-md hover:bg-gray-100"
+
+                {/* Hidden file input */}
+                <input
+                  type="file"
+                  name="picture"
+                  accept=".png, .jpg, .jpeg, image/png, image/jpeg"
+                  id="picture-upload"
+                  onChange={handleChange}
+                  className="sr-only"
+                />
+
+                {/* Label acting as button */}
+                <label
+                  htmlFor="picture-upload"
+                  className="text-sm text-gray-600 border border-gray-300 px-3 py-1 rounded-md hover:bg-gray-100 cursor-pointer"
                 >
                   Change Photo
-                </button>
+                </label>
               </div>
 
               {/* Name + Username */}
@@ -173,14 +190,13 @@ function Profile() {
             <h2 className="text-xl font-semibold text-gray-800">My Posts</h2>
 
             {posts.length !== 0 && (
-              <button
-                type="button"
-                onClick={() => console.log("Create Post clicked")} // 🔜 Replace with navigation or modal open logic
+              <Link
+                to={"/main/blog/add"}
                 className="flex items-center gap-2 rounded-md bg-gray-900 text-white px-4 py-2 text-sm  hover:bg-gray-800 transition-all duration-200"
               >
                 <span>＋</span>
                 Create Post
-              </button>
+              </Link>
             )}
           </div>
 
@@ -188,13 +204,12 @@ function Profile() {
           {posts.length === 0 ? (
             <div className="border border-gray-200 rounded-xl bg-white p-6 text-gray-600 text-sm flex flex-col items-center justify-center gap-3">
               <p>You haven’t created any posts yet.</p>
-              <button
-                type="button"
-                onClick={() => console.log("Create Post clicked")} // 🔜 Backend-ready
+              <Link
+                to={"/main/blog/add"}
                 className="mt-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-all duration-200"
               >
                 Create Your First Post
-              </button>
+              </Link>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
